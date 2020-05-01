@@ -10,7 +10,7 @@ def SCREEN_blit(src, dest):
 
 def pygame_display_update():
   RENDERER.render_present()
-  RENDERER.clear((0, 0, 0))
+  RENDERER.clear((1, 1, 1))
 
 import random
 import sys
@@ -34,13 +34,14 @@ SW = 240*2
 SH = 320*2
 
 CHZ = 16*4
-
-mapd = [[1,0,1,2,0,0],
-        [1,0,1,1,1,0],
-        [1,0,0,0,0,0],
-        [1,0,1,1,1,0],
-        [0,0,0,0,1,1],
-        [1,1,1,0,0,2]]
+#        0 1 2 3 4 5 6 7 8 9 0
+mapd = [[1,0,1,2,0,0,0],
+        [1,0,1,1,1,0,1],
+        [1,0,0,0,0,0,0],
+        [1,0,1,1,1,0,1],
+        [0,0,0,0,1,1,1],
+        [1,1,1,0,0,2,0],
+        [1,0,0,0,0,1,0]]
 
 class Monst:
   def __init__(self, k = 1, n =1, hp = 10, mp = 10, x = 4, y = -2, c = 1, r = 0):
@@ -96,10 +97,10 @@ def main():
   for i in range(NUM):
     stmp = pygame.Surface((16, 16))
     stmp.convert(stmp)
-    stmp.set_colorkey((71,108, 108))
     stmp.blit(ball, pygame.Rect(0,0,16,16), srct[i])
 
     stmp = pygame.transform.scale(stmp, (CHZ, CHZ))
+    stmp.set_colorkey((71,108, 108))
     osurf.append(stmp)
   touched = False
   tchx = 0
@@ -141,14 +142,17 @@ def main():
         
         touched = False
       
-    for y in range(4):
-      for x in range(4):
+    for y in range(7):
+      for x in range(7):
         xx = x * CHZ
         yy = y * CHZ
         if mapd[y][x] == 0:
           SCREEN_blit(osurf[167],(xx,yy))
         elif mapd[y][x] == 1:
           SCREEN_blit(osurf[164],(xx,yy))
+        elif mapd[y][x] == 2:
+          SCREEN_blit(osurf[167],(xx,yy))
+          SCREEN_blit(osurf[208],(xx,yy))
     SCREEN_blit(osurf[1], (p.x*64, p.y*64))
     
     pygame_display_update()
