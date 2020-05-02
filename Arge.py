@@ -4,6 +4,8 @@ pygame_sdl2.import_as_pygame()
 from plyer import orientation
 orientation.set_portrait()
 
+import makemaze
+
 def SCREEN_blit(src, dest):
   global RENDERER, spritecache
   Sprite(RENDERER.load_texture(src)).render(dest)
@@ -20,7 +22,11 @@ import pygame
 from pygame.locals import *
 from pygame.render import *
 
-class CPos:
+WID = 17
+HIG = 17
+mapd = [[0 for i in range(WID)] for j in range(HIG)]
+
+class CPosi:
   def __init__(self, x, y, idx):
     self.x = x
     self.y = y
@@ -33,15 +39,19 @@ FPS = 30
 SW = 240*2
 SH = 320*2
 
-CHZ = 16*4
-#        0 1 2 3 4 5 6 7 8 9 0
-mapd = [[1,0,1,2,0,0,0],
-        [1,0,1,1,1,0,1],
-        [1,0,0,0,0,0,0],
-        [1,0,1,1,1,0,1],
-        [0,0,0,0,1,1,1],
-        [1,1,1,0,0,2,0],
-        [1,0,0,0,0,1,0]]
+CHZ = 16*3
+
+mtmp = makemaze.MazeMaker(WID,HIG)
+mtmp.makemz()
+for y in range(HIG):
+  for x in range(WID):
+    masu = mtmp.getMap(x,y)
+    mapd[y][x] = masu
+
+DIR_L = 0
+DIR_R = 1
+DIR_U = 2
+DIR_D = 3
 
 class Monst:
   def __init__(self, k = 1, n =1, hp = 10, mp = 10, x = 4, y = -2, c = 1, r = 0):
@@ -57,6 +67,10 @@ class Monst:
     self.oy = y
     self.c = c
     self.r = r
+    self.anif = [0,1,0,2]
+    self.acnt = 0
+    self.acntspd = 0
+    self.dir4 = 0
   def getpos(self):
     return (self.x,self.y)
 
@@ -66,9 +80,9 @@ class Piicts:
   def draw(posx, posy):
     return
 
-p = Monst(1,0)      
+p = Monst(1,1)
 p.x = 1
-p.y = 0
+p.y = 1
 useswblitting = False
 
 # bgimg = pygame.image.load("manga.png")
@@ -123,27 +137,34 @@ def main():
       elif ev.type == pygame.MOUSEBUTTONUP:
         xx = ev.pos[0]
         yy = ev.pos[1]
+        p.ox = p.x
+        p.oy = p.y
+        ox = p.x
+        oy = p.y
         if dist(tchx, tchy, xx, yy) > 40:
           if abs(tchx - xx) > abs(tchy - yy):
             if tchx < xx:
               p.x += 1
+              p.dir4 = DIR_R
             elif tchx > xx:
               p.x -= 1
+              p.dir4 = DIR_L
           else:
             if tchy < yy:
               p.y += 1
+              p.dir4 = DIR_D
             elif tchy > yy:
               p.y -= 1
+              p.dir4 = DIR_U
           
-          if p.y < 0:
-            p.y = 0
-          if p.x < 0:
-            p.x = 0
-        
+          if mapd[p.y][p.x] != 0 or p.y < 0 or p.x < 0 or \
+          p.y >= HIG-1 or p.x >= HIG-1:
+            p.x = ox
+            p.y = oy
+          
         touched = False
-      
-    for y in range(7):
-      for x in range(7):
+    for y in range(HIG):
+      for x in range(WID):
         xx = x * CHZ
         yy = y * CHZ
         if mapd[y][x] == 0:
@@ -153,7 +174,15 @@ def main():
         elif mapd[y][x] == 2:
           SCREEN_blit(osurf[167],(xx,yy))
           SCREEN_blit(osurf[208],(xx,yy))
-    SCREEN_blit(osurf[1], (p.x*64, p.y*64))
+    # do player
+    pkoma = (0,1,0,2)
+    pkomacnt = 4
+    pkomawait = 6
+    p.acnt += 1
+    if p.acnt >= pkomawait * pkomacnt:
+      p.acnt = 0
+    pk = pkoma[p.acnt // pkomawait] 
+    SCREEN_blit(osurf[pk + 20 * p.dir4], (p.x*CHZ, p.y*CHZ))
     
     pygame_display_update()
     FPSCLOCK.tick(FPS)
