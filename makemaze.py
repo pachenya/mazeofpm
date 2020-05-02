@@ -1,4 +1,9 @@
 import random
+'''
+This file is made by Becky42.
+Let me know if you want to use this code.
+Twitter -> @alicebecky10
+'''
 
 class CPos:
  def __init__(self, x = 0, y = 0, n = 0):
@@ -27,7 +32,7 @@ class MazeMaker:
     w = self.WID
     h = self.HIG
     if x >= 0 and x <= w -1 and y >= 0 and y <= h:
-      if self.mapdr[y][x] == self.WT_B:
+      if self.mapdr[y][x] == self.WT_W:
         return False
       self.mapdr[y][x] = self.WT_N
       return True
@@ -91,9 +96,6 @@ def makemazetesttest():
   m = MazeMaker()
   m.makemz()
   m.draw_cons()
-  i = m.getMap(5,5)
-  print('')
-  print('i is ' + str(i))
 
 makemazetesttest()
 '''
