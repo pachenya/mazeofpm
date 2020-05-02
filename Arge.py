@@ -48,11 +48,6 @@ for y in range(HIG):
     masu = mtmp.getMap(x,y)
     mapd[y][x] = masu
 
-DIR_L = 0
-DIR_R = 1
-DIR_U = 2
-DIR_D = 3
-
 class Monst:
   def __init__(self, k = 1, n =1, hp = 10, mp = 10, x = 4, y = -2, c = 1, r = 0):
     self.k = k
@@ -63,6 +58,10 @@ class Monst:
     self.mmp = mp
     self.x = x
     self.y = y
+    self.vx = 0
+    self.vy = 0
+    self.nx = 0
+    self.ny = 0
     self.ox = x
     self.oy = y
     self.c = c
@@ -71,6 +70,22 @@ class Monst:
     self.acnt = 0
     self.acntspd = 0
     self.dir4 = 0
+    self.DIR_L = 0
+    self.DIR_R = 1
+    self.DIR_U = 2
+    self.DIR_D = 3
+  def move(self, vx, vy):
+    if vx != 0:
+      self.dir4 = self.DIR_R if vx > 0 else self.DIR_L
+      self.x += vx
+      return
+    if vy != 0:
+      self.dir4 = self.DIR_D if vy > 0 else self.DIR_U
+      self.y += vy
+      return
+  def gomove(self):
+    self.x = self.nx
+    self.y = self.ny
   def getpos(self):
     return (self.x,self.y)
 
@@ -83,13 +98,18 @@ class Piicts:
 p = Monst(1,1)
 p.x = 1
 p.y = 1
+
+p2 = Monst(1,2)
+p2.x = 1
+p2.y = 2
+
 useswblitting = False
 
 # bgimg = pygame.image.load("manga.png")
 
 def dist(x,y,x2,y2):
-  xx = x**2
-  yy = y**2
+  xx = (x-x2)**2
+  yy = (y-y2)**2
   return math.sqrt(xx+yy)
 
 def main():
@@ -137,31 +157,32 @@ def main():
       elif ev.type == pygame.MOUSEBUTTONUP:
         xx = ev.pos[0]
         yy = ev.pos[1]
-        p.ox = p.x
-        p.oy = p.y
-        ox = p.x
-        oy = p.y
-        if dist(tchx, tchy, xx, yy) > 40:
+        if dist(tchx, tchy, xx, yy) > 39:
+          ox = p.x
+          oy = p.y
+          od4 = p.dir4
           if abs(tchx - xx) > abs(tchy - yy):
-            if tchx < xx:
+            if tchx > xx:
               p.x += 1
-              p.dir4 = DIR_R
-            elif tchx > xx:
+              p.dir4 = p.DIR_R
+            else:
               p.x -= 1
-              p.dir4 = DIR_L
+              p.dir4 = p.DIR_L
           else:
-            if tchy < yy:
+            if tchy > yy:
               p.y += 1
-              p.dir4 = DIR_D
-            elif tchy > yy:
+              p.dir4 = p.DIR_D
+            else:
               p.y -= 1
-              p.dir4 = DIR_U
-          
-          if mapd[p.y][p.x] != 0 or p.y < 0 or p.x < 0 or \
-          p.y >= HIG-1 or p.x >= HIG-1:
+              p.dir4 = p.DIR_U
+              
+          if mapd[p.y][p.x] != 0:
             p.x = ox
             p.y = oy
-          
+          else:
+            p2.x = ox
+            p2.y = oy
+            p2.dir4 = od4
         touched = False
     for y in range(HIG):
       for x in range(WID):
@@ -183,6 +204,7 @@ def main():
       p.acnt = 0
     pk = pkoma[p.acnt // pkomawait] 
     SCREEN_blit(osurf[pk + 20 * p.dir4], (p.x*CHZ, p.y*CHZ))
+    SCREEN_blit(osurf[pk + 20 * p.dir4 + 20*4], (p2.x*CHZ, p2.y*CHZ))
     
     pygame_display_update()
     FPSCLOCK.tick(FPS)
