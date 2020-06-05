@@ -22,8 +22,8 @@ import pygame
 from pygame.locals import *
 from pygame.render import *
 
-WID = 17
-HIG = 17
+WID = 11
+HIG = 11
 mapd = [[0 for i in range(WID)] for j in range(HIG)]
 
 class CPosi:
@@ -39,7 +39,8 @@ FPS = 30
 SW = 240*2
 SH = 320*2
 
-CHZ = 16*3
+PICX = 4
+CHZ = 16*PICX
 
 mtmp = makemaze.MazeMaker(WID,HIG)
 mtmp.makemz()
@@ -161,28 +162,40 @@ def main():
           ox = p.x
           oy = p.y
           od4 = p.dir4
+          dx = 1
+          dy = 1
+          vx = 0
+          vy = 0
           if abs(tchx - xx) > abs(tchy - yy):
-            if tchx > xx:
-              p.x += 1
-              p.dir4 = p.DIR_R
+            vx = 1 if tchx > xx else -1
+            p.dir4 = p.DIR_R if vx > 0 else p.DIR_L
+          else: # if moving_for_y
+            vy = 1 if tchy > yy else -1
+            p.dir4 = p.DIR_D if vy > 0 else p.DIR_U
+          for i in range(2):
+            dx = p.x
+            dy = p.y
+            dx += vx
+            dy += vy
+            if dx < 0:
+              dx = 0
+            if dx >= WID - 1:
+              dx = WID - 1
+            if dy < 0:
+              dy = 0
+            if dy >= HIG - 1:
+              dy = HIG - 1
+            if mapd[dy][dx] == 0:
+              ox = p.x
+              oy = p.y
+              p.x = dx
+              p.y = dy
+              p2.x = ox
+              p2.y = oy
+              p2.dir4 = p.dir4
+              continue
             else:
-              p.x -= 1
-              p.dir4 = p.DIR_L
-          else:
-            if tchy > yy:
-              p.y += 1
-              p.dir4 = p.DIR_D
-            else:
-              p.y -= 1
-              p.dir4 = p.DIR_U
-              
-          if mapd[p.y][p.x] != 0:
-            p.x = ox
-            p.y = oy
-          else:
-            p2.x = ox
-            p2.y = oy
-            p2.dir4 = od4
+              break
         touched = False
     for y in range(HIG):
       for x in range(WID):
@@ -204,7 +217,7 @@ def main():
       p.acnt = 0
     pk = pkoma[p.acnt // pkomawait] 
     SCREEN_blit(osurf[pk + 20 * p.dir4], (p.x*CHZ, p.y*CHZ))
-    SCREEN_blit(osurf[pk + 20 * p.dir4 + 20*4], (p2.x*CHZ, p2.y*CHZ))
+    SCREEN_blit(osurf[pk + 20 * p2.dir4 + 20*4], (p2.x*CHZ, p2.y*CHZ))
     
     pygame_display_update()
     FPSCLOCK.tick(FPS)
